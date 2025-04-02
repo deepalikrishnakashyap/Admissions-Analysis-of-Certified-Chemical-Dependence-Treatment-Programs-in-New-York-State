@@ -1,0 +1,783 @@
+---
+title: "Chemical Dependence Treatment Program Admissions"
+subtitle: ""
+author: "Deepali Krishna Kashyap"
+date: "2025-02-16"
+output:
+  html_document:
+    code_folding: hide
+    theme: cerulean
+---
+<!-- Custom CSS for styling -->
+<style>
+  h1 {
+    text-align: center;
+    color: #1F53B4;font-weight: bold;/* Change this to your preferred color for the title */
+  }
+  h3.subtitle {
+    text-align: center;
+    color: #1F76B4; /* Change this to your preferred color for the subtitle */
+  }
+  .author {
+    text-align: center;
+    color: #008080; /* Change this to your preferred color for the author */
+  }
+  .date {
+    text-align: center;
+    color: #003636; /* Change this to your preferred color for the date */
+  }
+</style>
+
+
+
+<h3 style="color: #004949;">
+**Loading Libraries**
+</h3>
+```{r libraries}
+library(tidyverse)
+library(lubridate)
+library(XML)
+library(dplyr)
+library(stringr)
+library(tidyr)  
+library(ggplot2)
+```
+
+
+
+<h1 style="color: #006300; text-align: center; font-weight: bold;">
+PART 1
+</h1>
+
+
+
+<h4 style="color: #960000;">
+Create a dataframe with 4 variables. The 4 variables should be doctor_type, doctor_lastname, location, AVG_Rating .
+
+The variable doctor_type should contain 4 inputs (PCP, Psychiatrist,
+Surgeon, Anesthesia) The variable doctor_lastname should contain 4
+inputs (Smith, Dame, Jones, Zayas) The variable location should contain
+4 inputs (MA, ME, NH, VT) The variable AVG_Rating should contain 4
+inputs (7,9,8,9) Print the data frame.</h4>
+
+```{r}
+doctor_type <- c("PCP","Psychiatrist", "Surgeon", "Anesthesia")
+doctor_lastname <- c("Smith", "Dame", "Jones", "Zayas")
+location<- c("MA", "ME", "NH", "VT")
+AVG_Rating <- c(7, 9, 8, 9)
+doctor_df <-data.frame(doctor_type, doctor_lastname, location, AVG_Rating)
+
+doctor_df
+```
+
+<h4 style="color: #141c72;">
+The code creates a data frame (doctor_df) that stores information about different types of doctors, their last names, locations, and average ratings. It then prints the data frame.
+</h4>
+
+
+
+
+<h4 style="color: #960000;">
+Using the dataframe above.
+Select row 1 in column 2, what was selected? Select rows 2 through 4,
+what was selected? Select the last column, what was selected?
+</h4>
+
+
+```{r}
+#select row 1 in column 2
+doctor_df[1,2]
+```
+
+<h4 style="color: #141c72;">
+
+To select rows and columns within a Data Frame, we use square brackets.The first argument indicates which row we want to select. In this case,
+row = 1. The second argument selects the column. In this case, column = 2. For the first iteration, we are retrieving the last name of the first doctor stored, which is 'Smith'. 
+</h4>
+
+
+
+
+```{r}
+#select rows 2 through 4
+doctor_df[2:4,]
+
+```
+
+<h4 style="color: #141c72;">
+In this case, when we use ':', we are specifying a range. Since this
+range is in the rows section, we are selecting the rows from 2 to 4
+inclusively. In other words, since our Data Frame has only four rows, we
+are selecting the entire Data Frame except for the first row. The column
+argument remains empty, indicating that we do not want to select any
+specific column. We are retrieving all the data for the last three
+doctors in our Data Frame, including their specialties, last names,
+locations, and ratings.</h4>
+
+
+
+```{r}
+#Last column
+doctor_df[,4]
+
+```
+
+<h4 style="color: #141c72;">
+Finally, we are selecting only the column located in the fourth position
+within the Data Frame. We are retrieving only the AVG_ratings for all
+the doctors.
+</h4>
+
+
+<h1 style="color: #006300; text-align: center; font-weight: bold;">
+PART 2
+</h1>
+
+
+<h3 style="color: #141c72;">
+Now that we know more about the Chemical Dependence Treatment Program
+offered by The Office of Addiction Services and Support, we have a
+better picture of the mission of The Office and their history and
+requirements to be accepted. From now on, we can understand the data by
+reading the dictionary file and loading the ".csv" file in our code
+chunk to observe the structure and dimensions of the dataset.
+</h3>
+
+
+<h4 style="color: #960000;">
+Load the data, directly from the URL Links to an external site, into your R environment.
+</h4>
+```{r}
+
+
+ny_cd_df <- read.csv("https://query.data.world/s/orm7vayxgdtwvfceewvazzo5psj6wn?dws=00000", header=TRUE, stringsAsFactors=FALSE)
+head(ny_cd_df)
+# We get the total columns and rows
+dim(ny_cd_df)
+# We get the structure of the data frame and the types of variables.
+str(ny_cd_df)
+
+```
+
+
+<h4 style="color: #960000;">
+Evaluate the dataset to determine what data preparation steps are needed and perform them. At a minimum, ensure that you discuss the distribution of the data, outliers and prepare any helpful summary statistics to support your analysis.
+</h4>
+
+
+<h4 style="color: #141c72;">
+We will be dealing with a data frame that has around 72,463 observations
+and 7 variables. The data types in our Data Frame are characters
+(strings) and integers (integer numbers). We can also use the glimpse()
+function to see more clearly the data type and some of the values.
+</h4>
+
+```{r}
+
+glimpse(ny_cd_df)
+```
+
+<h4 style="color: #141c72;">
+We also want to obtain a better understanding of the statistics of the
+Data Frame. 
+</h4>
+
+```{r}
+# We can get the statistics from the data frame
+
+summary(ny_cd_df)
+
+```
+
+
+
+<h4 style="color: #141c72;">
+Now that we have a better understanding of the data, let's start
+retrieving more specific information and identifying things we may need
+to change for a better data wrangling process.</h4>
+
+<h4>1.  We will make arrangements to change the names of the columns for a
+    better understanding.
+
+2.  We will change the data type of the columns that don't have the most
+    appropriate type. For example, some of the columns are stored as
+    characters when they should be factors because they are representing
+    different categories.
+
+3.  Make sure our Data Frame doesn't contain NA or empty values. If it
+    does, we will treat them separately and take the appropriate
+    approach. In other words, should we delete them? Should we convert
+    the NAs or empty values to 0?
+
+4.  We will address the outliers and consider the definition of an
+    outlier. We will need to decide where the boundary of an outlier
+    lies: Is it 3 standard deviations from the mean? Or 1.5 standard
+    deviations from the mean?
+
+5.  Finally, we will have a clean Data Frame ready to use and extract
+    information from.</h4>
+
+<h4 style="color: #141c72;">We will ensure that the results make sense, and if for some reason we
+detect an error or irregularity, we will address it and restart the
+cleaning process</h4>
+
+### STEP 1
+
+```{r}
+
+# Renaming the columns and applying the changes in the data frame. Instead of using "." we prefer to use "-" for the names of the columns.
+
+ny_cd_df <- ny_cd_df %>%
+  rename("County" = "County.of.Program.Location",
+         "Service_Type" = "Service.Type",
+         "Program_Category" = "Program.Category",
+         "Age_Group" = "Age.Group",
+         "Primary_Substance_Group" = "Primary.Substance.Group")
+
+# Observing the change of names
+head(ny_cd_df)
+
+# We could also just display the name of the columns 
+colnames(ny_cd_df)
+
+```
+
+### STEP 2
+
+<h4 style="color: #141c72;">
+We will detect which columns need to be stored in a different type:
+</h4>
+
+<h4>
+1.  **"Program_Category":** is stored as a character but because it refers
+    to a category it should be stored as a factor.
+2.  **"Service_Type":** is stored as a character but because it refers to a
+    category it should be stored as a factor.
+3.  **"Age-Group":** is stored as a character but because it refers to a
+    category it should be stored as a factor.
+4.  **"Primary_Substance_Group":** is stored as a character but because it
+    refers to a category it should be stored as a factor.
+5.  **"Year":** is stored as an integer but because it refers to a category
+    (group of years) it should be stored as a factor.
+</h4>
+
+
+
+<h4 style="color: #141c72;">
+The variables: County_of_Program_Location and Admissions will
+remain the same since their data types are accurate
+</h4>
+
+```{r}
+ny_cd_df$Program_Category <- as.factor(ny_cd_df$Program_Category)
+ny_cd_df$Service_Type  <- as.factor(ny_cd_df$Service_Type)
+ny_cd_df$Age_Group <- as.factor(ny_cd_df$Age_Group)
+ny_cd_df$Primary_Substance_Group <- as.factor(ny_cd_df$Primary_Substance_Group)
+ny_cd_df$Year <- as.factor(ny_cd_df$Year)
+
+head(ny_cd_df)
+
+```
+
+### STEP 3
+
+```{r}
+#By using the sum() function, we can count how many NA's are present in our Data Frame. Additionally, we want to check if there are any empty values or spaces entered in any of the cells by using the "|" operator.
+
+sum(is.na(ny_cd_df))
+empty <- sum(ny_cd_df == "" | ny_cd_df == " ")
+
+# Printing the results
+print(paste("Number of empty values:", empty))
+
+# Count duplicate rows
+num_duplicates <- sum(duplicated(ny_cd_df))
+
+# Remove duplicates if found
+ny_cd_df <- ny_cd_df %>% distinct()
+
+# Print the number of removed duplicate rows
+print(paste("Number of duplicate rows removed:", num_duplicates))
+```
+
+### STEP 4
+
+
+```{r}
+#ADMISSIONS
+admissions <- ny_cd_df$Admissions
+mean_admissions = mean(admissions)
+
+#Standard deviations
+sd_admissions = sd(admissions)
+sd_admissions
+
+#Getting the high outliers and low outliers for the variable admissions.
+
+high_outliers_admissions = mean_admissions + 3 * sd_admissions
+high_outliers_admissions
+
+low_outliers_admissions = mean_admissions - 3 * sd_admissions
+low_outliers_admissions
+
+#Getting the number of outliers considering the values below the low_outliers and above the high_outliers
+n_admissions_outliers <- sum(admissions < low_outliers_admissions | admissions > high_outliers_admissions)
+
+#We've got 1380 outliers for "admissions"
+n_admissions_outliers
+
+# We want now to eliminate the outliers from the column tip_amount. We will use a filter to cleanup the data and then visualize the column before and after the outliers.
+ny_cd_df_clean <- ny_cd_df %>%
+  filter(admissions >= low_outliers_admissions & admissions <= high_outliers_admissions)
+
+#Comparing both data frames:
+head(ny_cd_df_clean)
+head(ny_cd_df)
+
+```
+### STEP 5
+
+### Plot visualization:
+```{r}
+
+ggplot(ny_cd_df_clean, aes(x = Year, fill = Year)) +
+  geom_bar() +
+  theme_bw() +
+  labs(title = "Number of Admissions per Year",
+       x = "Year",
+       y = "Count of Admissions",
+       fill = "Year")
+
+
+```
+
+
+<h4 style="color: #141c72;">
+The graph is a bar chart representing the Number of Admissions per Year from 2007 to 2017. Each bar corresponds to a specific year and is color-coded according to the legend on the right. The x-axis represents the years, while the y-axis represents the count of admissions.
+</h4>
+
+
+
+
+<h4 style="color: #960000;">
+**Tibble 1:** county which contains the name of all counties and their respective county code (link)Links to an external site. (which is the primary key). ensure that your data frame does not contain duplicate counties and ensure that your dataframe contains all counties in the data. The county codes provided in the link above are  intended as a starting point.  Remember that primary keys must be unique.
+</h4>
+
+<h4 style="color: #141c72;"> 
+Data Cleaning and Transformation - Extracting County Codes
+In this part of the analysis, we are focusing on cleaning and transforming the data for better analysis. Specifically, we are working with the County column in the dataset to:</h4>
+
+<h4>
+1. Extract unique counties
+2. Generate a standardized code for each county
+3. Display the cleaned data for verification
+</h4>
+
+```{r}
+# Extract Unique Counties with County Codes
+county <- ny_cd_df_clean %>%
+  select(County) %>%
+  distinct() %>%
+  mutate(county_code = toupper(substr(County, 1, 2)))  # Generate county code using first 2 letters
+
+# Display cleaned county data
+head(county)
+
+
+```
+
+<h4 style="color: #141c72;"> 
+We want to ensure that each county appears only once in our data.
+</h4>
+
+<h4>
+1. We selected the County column from the original dataset, which contains multiple entries for the same county.
+2. By using the distinct() function, we removed duplicates, leaving us with a list of unique counties.
+3. substr(County, 1, 2): We took the first two letters of each county’s name. This is useful for creating short and unique identifiers.
+4. toupper(): We converted these two letters to uppercase for consistency and standardization across the dataset.
+5. The head(county) function displays the first few rows of our cleaned dataset.
+6. The result should show a list of counties paired with their corresponding county codes
+</h4>
+
+##
+
+<h4 style="color: #960000;">
+**Tibble 2:** program_category: which contains a unique identifier and the name of the program category. ensure that your data frame does not contain duplicates. The codes can be numeric (e.g. auto incremented).
+</h4>
+
+<h4 style="color: #141c72;"> 
+Data Cleaning for Program Categories -
+
+In this part of the analysis, we focus on cleaning and transforming the Program Category column for better analysis. We perform the following steps: </h4>
+
+<h4>
+1. Extract unique program categories
+2. Generate a standardized code for each program category
+3. Display the cleaned data for verification
+</h4>
+
+
+```{r}
+# Extract Unique Program Categories
+program_category <- ny_cd_df_clean %>%
+  select(Program_Category) %>%
+  distinct() %>%
+  mutate(program_code = toupper(substr(Program_Category, 1, 2)))  # Assign unique numeric code
+
+# Display cleaned program_category data
+head(program_category)
+
+
+```
+
+<h4 style="color: #141c72;">
+ We want to ensure that each program category appears only once in the dataset.
+ </h4>
+
+<h4>
+1. We selected the Program_Category column from the original dataset, which contains multiple entries for the same category.
+2. By using the distinct() function, we removed duplicates, leaving only unique program categories.
+3. substr(Program_Category, 1, 2): We extracted the first two letters of each program category. This gives us a concise, standardized code for each category.
+4. toupper(): We converted these letters to uppercase to ensure consistency across the dataset.
+5. The head(program_category) function displays the first few rows of the cleaned dataset.
+</h4>
+
+
+##
+
+
+<h4 style="color: #960000;">
+
+**Tibble 3:** primary_substance_group: which contains a unique identifier and the name of the substance. ensure that your data frame does not contain duplicates. The codes can be numeric (e.g. auto incremented).
+
+</h4>
+
+<h4 style="color: #141c72;"> 
+Data Cleaning and Transformation for Primary Substance Group -
+
+In this section of the analysis, we are cleaning and transforming the Primary Substance Group data to:
+</h4>
+
+<h4>
+1. Extract unique substance categories
+2. Generate a standardized code for each substance group (e.g., "Heroin" becomes "H")
+3. Display the cleaned data with substance codes for verification.
+</h4>
+
+```{r}
+primary_substance_group <- ny_cd_df_clean %>%
+  select(Primary_Substance_Group) %>%
+  distinct() %>%
+  mutate(
+    substance_code = case_when(
+      Primary_Substance_Group == "All Others" ~ "AO",  # Assign code 'AO' to "All Others"
+      Primary_Substance_Group == "Heroin" ~ "H",       # Assign code 'H' to "Heroin"
+      Primary_Substance_Group == "Cocaine incl Crack" ~ "CC",  # Assign code 'C' to "Cocaine incl Crack"
+      Primary_Substance_Group == "Alcohol" ~ "A",      # Assign code 'A' to "Alcohol"
+      Primary_Substance_Group == "Other Opioids" ~ "O",  # Assign code 'O' to "Other Opioids"
+      Primary_Substance_Group == "Marijuana incl Hashish" ~ "MH",  # Assign code 'M' to "Marijuana incl Hashish"
+    )
+  )
+ 
+# Display cleaned primary_substance_group data with substance codes
+head(primary_substance_group)
+```
+
+<h4 style="color: #141c72;">
+We want to eliminate any duplicates and work with only the unique substance categories in the dataset.
+</h4>
+<h4>
+1. We selected the Primary_Substance_Group column from the dataset.
+2. The distinct() function removed any duplicate entries, leaving only unique substance categories.
+</h4>
+
+<h4 style="color: #141c72;">
+We want to generate unique substance codes that will make the data easier to work with.
+1. We used the case_when() function to create the substance_code column. Each substance group was assigned a corresponding code:
+</h4>
+
+<h4>
+"All Others" → "AO"
+"Heroin" → "H"
+"Cocaine incl Crack" → "CC"
+"Alcohol" → "A"
+"Other Opioids" → "O"
+"Marijuana incl Hashish" → "MH"
+</h4>
+
+<h4 style="color: #141c72;">
+To verify that the data transformation was performed correctly.
+</h4>
+<h4>
+1. The head(primary_substance_group) function displays the first few rows of the cleaned dataset.
+</h4>
+
+
+<h4 style="color: #960000;">
+**Tibble 4:** admissions_data which contain the details on the reported number of admissions — excluding the data that resides in the county, program_category and primary_substance_group tibbles/data frames; you should instead include a column with their respective foreign keys. 
+</h4>
+
+<h4 style="color: #141c72;">
+Clean, merge, and transform admissions_data -
+The goal of this step is to clean, merge, and transform data for a more structured and effective analysis.
+</h4>
+
+```{r}
+admissions_data <- ny_cd_df_clean %>%
+  left_join(county, by = "County") %>%
+  left_join(program_category, by = "Program_Category") %>%
+  left_join(primary_substance_group, by = "Primary_Substance_Group")
+
+ 
+# Display the final merged data
+admissions_data <- admissions_data%>%
+  select(Year, county_code, program_code, Service_Type, Age_Group, substance_code, Admissions)
+
+#Conversion to a factor
+
+admissions_data$county_code <- as.factor(admissions_data$county_code)
+admissions_data$program_code  <- as.factor(admissions_data$program_code)
+admissions_data$substance_code <- as.factor(admissions_data$substance_code)
+
+head(admissions_data)
+tail(admissions_data)
+```
+
+<h4 style="color: #141c72;">
+We are merging multiple datasets to combine relevant data into a single dataframe, admissions_data, for better analysis.
+
+Joining the datasets using common columns:
+</h4>
+<h4>
+1. County: We join by the County column.
+2. Program Category: We join by Program_Category.
+3. Primary Substance Group: We join by Primary_Substance_Group.
+</h4>
+
+<h4 style="color: #141c72;">
+Once the data is merged, we keep only the relevant columns for our analysis:
+</h4>
+<h4>
+1. Year
+2. County Code
+3. Program Code
+4. Service Type
+5. Age Group
+6. Substance Code
+7. Admissions
+
+
+This helps reduce unnecessary data and focus on key variables.
+</h4>
+
+<h4 style="color: #141c72;">
+We convert categorical columns (such as county_code, program_code, and substance_code) to factors.
+
+After performing the necessary transformations, we check the data to ensure everything is in order.
+
+We use the following functions to display the first and last rows of the data:
+</h4>
+
+<h4>
+1. head(admissions_data): View the first few rows.
+2. tail(admissions_data): View the last few rows.
+
+This ensures that the data has been correctly merged and transformed.
+</h4>
+
+
+
+<h4 style="color: #960000;">
+Create a function called annualAdmissions() that derives the total number of reported admissions that transpired each year, for the entire state of NY and displays the results using a line chart. Annotate the chart to show the year with the highest number of admissions. Note: the year should be on the x-axis and the number of admissions on the y-axis. Explain the chart. 
+</h4>
+
+
+```{r}
+# Define the function
+annualAdmissions <- function(ny_cd_df_clean) {
+  
+  # Aggregate total admissions by year
+  admissions_by_year <- ny_cd_df_clean %>%
+    group_by(Year) %>%
+    summarise(total_admissions = sum(Admissions, na.rm = TRUE))%>%
+    arrange(Year)
+  
+  # Identify the year with the highest admissions
+  max_year <- admissions_by_year %>%
+    filter(total_admissions == max(total_admissions)) 
+
+  # Create the line chart
+  ggplot(admissions_by_year, aes(x = factor(Year), y = total_admissions)) +
+    geom_line(group = 1, color = "purple", size = 1.2) +
+    geom_point(color = "red", size = 3) +
+    geom_text(data = max_year, aes(label = paste("Peak:", total_admissions)),  
+              vjust = -2, hjust = 1, size = 4, color = "black") +
+    #scale_x_continuous(breaks = seq(2007, 2019, by = 1)) + 
+    scale_y_continuous(limits = c(min(admissions_by_year$total_admissions), 
+                              max(admissions_by_year$total_admissions) + 2000)) +
+    labs(title = "Total Admissions to Chemical Dependence Treatment Programs (2007-2017)",
+         x = "Year",
+         y = "Total Admissions") +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+      axis.title = element_text(size = 10),
+      axis.text.x = element_text(angle = 45, hjust = 1,margin = margin(t = 10)),
+      plot.margin = margin(1, 1, 1, 1, "cm"), 
+      axis.text.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 15)), 
+    axis.title.y = element_text(margin = margin(r = 15))
+    )
+}
+
+# Run the function with admissions_data
+annualAdmissions(ny_cd_df_clean)
+
+```
+
+
+<h4> The line chart "Total Admissions to Chemical Dependence Treatment Programs (2007-2017)" presents the trend of total admissions to chemical dependence treatment programs over the years 2007 to 2019. </h4>
+
+<h4> **General Trend:** The number of admissions fluctuates over the years with periodic increases and decreases rather than a steady trend. Despite fluctuations, there appears to be an overall upward trend in total admissions towards the later years.
+
+**Peaks & Dips:** Highest Admissions: The most recent year (likely 2017) shows the highest admissions, indicating an increasing demand for treatment programs.
+Significant Drop: Admissions declined around 2011-2012 before rising again.
+
+**Color Representation:** The purple line represents the trend of admissions. Red points highlight specific yearly data points, making fluctuations more visible.
+
+**X-Axis & Y-Axis:** The X-axis (Years) shows the timeline from 2007 to 2019. The Y-axis (Total Admissions) represents the number of admissions, suggesting that values range between 185,000 to 197,500. 
+</h4>
+
+
+
+
+<h4 style="color: #960000;">
+Analyze the percentage of admissions for each county and visualize the results for the top 5 counties using a bar chart. Explain the results. Note: ensure that you join any related dataframes/ tibbles.
+</h4>
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Defining the function
+countyAdmissionsAnalysis <- function(admissions_data) {
+  
+  # seperate total admissions by county
+  county_admissions <- admissions_data %>%
+    group_by(county_code) %>%
+    summarise(total_admissions = sum(Admissions, na.rm = TRUE)) %>%
+    arrange(desc(total_admissions))
+  
+  # Calculating percentage of total admissions for each county
+  total_statewide_admissions <- sum(county_admissions$total_admissions, na.rm = TRUE)
+  county_admissions <- county_admissions %>%
+    mutate(percentage = (total_admissions / total_statewide_admissions) * 100)
+  
+  # Selecting top 5 counties
+  top_5_counties <- county_admissions %>%
+    slice_max(order_by = total_admissions, n = 5)
+  
+  # bar chart
+  ggplot(top_5_counties, aes(x = reorder(county_code, -total_admissions), y = percentage, fill = county_code)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = paste0(round(percentage, 2), "%")), vjust = -0.5, size = 4) +
+    labs(title = "Top 5 Counties by Percentage of Admissions",
+         x = "County Code",
+         y = "Percentage of Total Admissions") +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+      axis.title = element_text(size = 10),
+      axis.text.x = element_text(angle = 45, hjust = 1, margin = margin(t = 10)),
+      legend.position = "none"
+    )
+}
+
+# Run the function with admissions_data
+countyAdmissionsAnalysis(admissions_data)
+```
+<h4>
+The bar chart represents **the top 5 counties in terms of percentage of total admissions to chemical dependence treatment programs.**
+
+From the graph we can see that the county **NE** has highest percentage of total admission, this means that higher population, greater availability of treatment facilities.
+
+The second highest is **ON** , followed by **SU**, **BR**, **QU**, these are the counties that have treatment program admissions.
+
+The reason for high admission is that irban aread have higher substance use rates which in-turn has high accessible treatment programs. 
+
+In bar chart color-coded bars help differentiate counties, and the percentage on top of each bars is to make visualization easy to compare across the counties.
+
+In conclusion, this visualization helps identify the counties which has the highest treatment admissions and the county with highest percentage of admissions is **NE**. While **NE** is highest, the difference between top counties are not huge, which says that the admissions are somewhat spread out among them. This information is important because the health officials and policy makers could know where to allocate resources and arrange treatment programs which in-turn helps those struggling with substance dependence. 
+</h4>
+
+
+
+<h3 style="color: #960000;">
+Filter the data, using a regular expression, and extract all admissions to the various “Rehab” facilities; i.e. your regex should match all facilities that include the word rehab, rehabilitation, etc. Using the filtered data, identify which substance is the most prominent among each age group.
+Visualize and explain the results.
+</h3>
+
+
+
+<h4>
+The provided R code analyzes admissions to rehabilitation facilities based on substance use and age groups. First, it filters the dataset to include only rehabilitation-related services by applying a regular expression that matches keywords like "rehab" and "rehabilitation" in the Service_Type column. 
+
+The filtered dataset is then grouped by Age_Group and substance_code, summing up the admissions to determine the total count for each substance within each age category. 
+
+To identify the most prominent substance for each age group, the code selects the substance with the highest admissions using slice_max(), ensuring only one is chosen per group. The results are visualized using a bar chart, where the x-axis represents age groups, the y-axis represents total admissions, and different colors represent the most commonly used substance in each group. 
+
+The visualization shows that heroin (H) is the most common substance among the 18-24 age group, while alcohol (A) is the leading substance for all older age groups, with the highest admissions occurring in the 45-54 age range. 
+
+Additionally, among individuals under 18, mental health-related substances (MH) are the most reported. This pattern suggests that younger adults are more affected by heroin use, while alcohol addiction becomes more prominent with increasing age. The results highlight significant trends in substance abuse treatment, indicating the need for age-specific intervention strategies in rehabilitation services.
+</h4>
+
+```{r}
+# Define the function
+rehabAdmissionsAnalysis <- function(ny_cd_df_clean) {
+  
+  # Filter admissions related to rehab facilities using regex on Service_Type
+  rehab_admissions <- ny_cd_df_clean %>%
+    filter(str_detect(Service_Type, regex("rehab|rehabilitation", ignore_case = TRUE)))
+ 
+   # Print the first few rows of rehab_admissions
+  print(head(rehab_admissions))  # Displays the first 6 rows
+  
+  # Identify the most common substance for each age group
+  top_substance_by_age <- rehab_admissions %>%
+    group_by(Age_Group, substance_code) %>%
+    summarise(total_admissions = sum(Admissions, na.rm = TRUE), .groups = "drop") %>%
+    group_by(Age_Group) %>%  
+    slice_max(order_by = total_admissions, n = 1, with_ties = FALSE)  # Get the top substance for each age group
+  
+  # Bar chart visualization for all age groups
+  ggplot(top_substance_by_age, aes(x = Age_Group, y = total_admissions, fill = substance_code)) +
+    geom_bar(stat = "identity", position = "dodge") +  # Use "dodge" to separate bars for each age group
+    geom_text(aes(label = substance_code), vjust = -0.5, size = 4, position = position_dodge(width = 0.9)) +  # Add labels for each bar
+    labs(title = "Most Common Substance by Age Group in Rehab Services",
+         x = "Age Group",
+         y = "Total Admissions",
+         fill = "Substance Code") +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+      axis.title = element_text(size = 10),
+      axis.text.x = element_text(angle = 45, hjust = 1, margin = margin(t = 10))
+    )
+
+}
+
+# Run the function 
+rehabAdmissionsAnalysis(admissions_data)
+```
+
+<h4>
+The bar chart shows the most common substance for each age group in rehab services.
+In 18-24 age groups, the most common substance is H (Heroin) (green bar).
+
+In 25+ age groups, the most common substance is A (likely Alcohol) (red bars), peaking in the 45-54 age group.
+
+And in Under 18, the most common substance is MH (blue bar).
+
+These results suggest that younger individuals (18-24) are more affected by heroin use, while older individuals struggle more with alcohol addiction.
+</h4>
